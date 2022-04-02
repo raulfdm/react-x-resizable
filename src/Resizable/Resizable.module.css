@@ -1,0 +1,8 @@
+.bar {
+  cursor: col-resize;
+  width: 2px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+}
