@@ -1,19 +1,31 @@
 import { useEffect, useRef } from "react";
 
-function isDocumentPresent() {
-  return typeof document !== "undefined";
-}
+import { isDocumentDefined } from "./utils";
+
+const PERSIST_KEY = "react-x-resizable-persist";
 
 type ResizableProps = {
   parentRef: React.RefObject<HTMLElement>;
+  onResizeEnd?: (width: number) => void;
+  persist?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  persistId?: string;
 };
 
-export function Resizable({ parentRef }: ResizableProps) {
+export function Resizable({
+  parentRef,
+  persist = false,
+  onResizeEnd,
+  className,
+  style,
+  persistId = PERSIST_KEY,
+}: ResizableProps): JSX.Element {
   const resizableElementRef = useRef<HTMLDivElement>(null);
   const currentCursor = useRef<string>("");
 
   useEffect(() => {
-    if (isDocumentPresent()) {
+    if (isDocumentDefined()) {
       currentCursor.current = document.body.style.cursor;
 
       setParentRefWidth(retrieveSavedSize());
@@ -21,7 +33,7 @@ export function Resizable({ parentRef }: ResizableProps) {
   }, []);
 
   function userSelect() {
-    if (isDocumentPresent()) {
+    if (isDocumentDefined()) {
       document.body.addEventListener("pointermove", userMove);
       document.body.addEventListener("mouseup", userRelease);
       document.body.addEventListener("mouseleave", userRelease);
@@ -34,32 +46,51 @@ export function Resizable({ parentRef }: ResizableProps) {
   }
 
   function userRelease() {
-    document.body.removeEventListener("pointermove", userMove);
-    document.body.removeEventListener("mouseup", userRelease);
-    document.body.removeEventListener("mouseleave", userRelease);
-    document.body.style.cursor = currentCursor.current;
-    persistCurrentSize(parentRef.current?.style.width || "");
-  }
+    if (resizableElementRef.current) {
+      const { clientWidth } = resizableElementRef.current;
 
-  function persistCurrentSize(size: string) {
-    if (isDocumentPresent()) {
-      localStorage.setItem("resizable-width", size.replace("px", ""));
-    }
-  }
+      document.body.removeEventListener("pointermove", userMove);
+      document.body.removeEventListener("mouseup", userRelease);
+      document.body.removeEventListener("mouseleave", userRelease);
+      document.body.style.cursor = currentCursor.current;
 
-  function retrieveSavedSize(): string {
-    if (isDocumentPresent()) {
-      return localStorage.getItem("resizable-width") || "";
-    }
-
-    return "";
-  }
-
-  function setParentRefWidth(width: string | number) {
-    if (parentRef.current !== null && parentRef.current !== undefined) {
-      if (width !== "") {
-        parentRef.current.style.width = `${width}px`;
+      if (persist) {
+        persistCurrentSize(clientWidth);
       }
+
+      if (onResizeEnd) {
+        onResizeEnd(clientWidth);
+      }
+    }
+  }
+
+  function persistCurrentSize(width: number) {
+    if (isDocumentDefined()) {
+      localStorage.setItem(persistId, width.toString());
+    }
+  }
+
+  function retrieveSavedSize(): number | null {
+    let width = null;
+
+    if (isDocumentDefined()) {
+      const savedWidth = localStorage.getItem(persistId);
+
+      if (savedWidth !== null) {
+        width = parseFloat(savedWidth);
+      }
+    }
+
+    return width;
+  }
+
+  function setParentRefWidth(width: number | null) {
+    if (
+      parentRef.current !== null &&
+      parentRef.current !== undefined &&
+      width !== null
+    ) {
+      parentRef.current.style.width = `${width}px`;
     }
   }
 
@@ -72,7 +103,9 @@ export function Resizable({ parentRef }: ResizableProps) {
         top: 0,
         bottom: 0,
         right: 0,
+        ...style,
       }}
+      className={className}
       ref={resizableElementRef}
       onMouseDown={userSelect}
     />
