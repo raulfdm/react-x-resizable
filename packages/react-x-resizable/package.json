@@ -1,0 +1,32 @@
+{
+  "name": "react-x-resizable",
+  "private": true,
+  "version": "0.0.0",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/x-resizable.umd.js",
+  "module": "./dist/x-resizable.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/x-resizable.es.js",
+      "require": "./dist/x-resizable.umd.js"
+    }
+  },
+  "scripts": {
+    "prepare": "scripty",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "build:lib": "scripty",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.23",
+    "@types/react": "^17.0.33",
+    "@types/react-dom": "^17.0.10"
+  }
+}
