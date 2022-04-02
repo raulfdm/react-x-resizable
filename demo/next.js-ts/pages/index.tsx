@@ -32,7 +32,7 @@ const Home: NextPage = () => {
           `}
         </style>
         <div className="sidePanel" ref={sideBarRef}>
-          <Resizable parentRef={sideBarRef} />
+          <Resizable parentRef={sideBarRef} persist />
         </div>
         <h1 className={styles.title}>
           Welcome to <a href="https://nextjs.org">Next.js!</a>

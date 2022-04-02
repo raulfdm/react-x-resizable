@@ -23,12 +23,17 @@ export function Resizable({
 }: ResizableProps): JSX.Element {
   const resizableElementRef = useRef<HTMLDivElement>(null);
   const currentCursor = useRef<string>("");
+  const currentWidth = useRef<number>(0);
 
   useEffect(() => {
-    if (isDocumentDefined()) {
+    if (isDocumentDefined() && parentRef.current) {
       currentCursor.current = document.body.style.cursor;
+      currentWidth.current = parentRef.current.clientWidth;
 
-      setParentRefWidth(retrieveSavedSize());
+      if (persist) {
+        retrievePersistedWidth();
+        setParentRefWidth();
+      }
     }
   }, []);
 
@@ -42,20 +47,23 @@ export function Resizable({
   }
 
   function userMove(event: PointerEvent) {
-    setParentRefWidth(event.clientX);
+    currentWidth.current = event.clientX;
+
+    setParentRefWidth();
   }
 
   function userRelease() {
-    if (resizableElementRef.current) {
-      const { clientWidth } = resizableElementRef.current;
+    if (parentRef.current) {
+      const { clientWidth } = parentRef.current;
 
       document.body.removeEventListener("pointermove", userMove);
       document.body.removeEventListener("mouseup", userRelease);
       document.body.removeEventListener("mouseleave", userRelease);
       document.body.style.cursor = currentCursor.current;
+      currentWidth.current = clientWidth;
 
       if (persist) {
-        persistCurrentSize(clientWidth);
+        persistCurrentSize();
       }
 
       if (onResizeEnd) {
@@ -64,33 +72,25 @@ export function Resizable({
     }
   }
 
-  function persistCurrentSize(width: number) {
+  function persistCurrentSize() {
     if (isDocumentDefined()) {
-      localStorage.setItem(persistId, width.toString());
+      localStorage.setItem(persistId, currentWidth.current.toString());
     }
   }
 
-  function retrieveSavedSize(): number | null {
-    let width = null;
-
+  function retrievePersistedWidth() {
     if (isDocumentDefined()) {
       const savedWidth = localStorage.getItem(persistId);
 
       if (savedWidth !== null) {
-        width = parseFloat(savedWidth);
+        currentWidth.current = parseFloat(savedWidth);
       }
     }
-
-    return width;
   }
 
-  function setParentRefWidth(width: number | null) {
-    if (
-      parentRef.current !== null &&
-      parentRef.current !== undefined &&
-      width !== null
-    ) {
-      parentRef.current.style.width = `${width}px`;
+  function setParentRefWidth() {
+    if (parentRef.current !== null && parentRef.current !== undefined) {
+      parentRef.current.style.width = `${currentWidth.current}px`;
     }
   }
 
