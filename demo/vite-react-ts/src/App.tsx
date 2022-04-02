@@ -2,7 +2,7 @@ import logo from "./logo.svg";
 import "./App.css";
 import { useRef } from "react";
 
-import { Resizable } from "../../../dist/my-lib.es";
+import { Resizable } from "react-x-resizable";
 
 function App() {
   const sidebarRef = useRef<HTMLDivElement>(null);
